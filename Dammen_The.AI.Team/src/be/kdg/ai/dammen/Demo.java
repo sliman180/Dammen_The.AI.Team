@@ -7,11 +7,10 @@ import be.kdg.ai.dammen.be.kdg.ai.dammen.board.Board;
  */
 public class Demo {
     public static void main(String[] args) {
-<<<<<<< HEAD
+
         System.out.println("test");
         System.out.println("Sliman");
-=======
         System.out.println("SAM");
->>>>>>> origin/master
+
     }
 }
