@@ -8,5 +8,6 @@ import be.kdg.ai.dammen.be.kdg.ai.dammen.board.Board;
 public class Demo {
     public static void main(String[] args) {
         System.out.println("test");
+        System.out.println("Sliman");
     }
 }
