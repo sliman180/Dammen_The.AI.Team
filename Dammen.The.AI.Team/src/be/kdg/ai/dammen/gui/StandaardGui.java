@@ -7,7 +7,7 @@ import be.kdg.ai.dammen.board.Board;
  */
 public class StandaardGui implements Gui {
     @Override
-    public void showBoard(Board[][] board) {
+    public void showBoard(Board board) {
 
     }
 }

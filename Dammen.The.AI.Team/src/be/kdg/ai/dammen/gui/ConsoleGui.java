@@ -8,11 +8,12 @@ import be.kdg.ai.dammen.piece.TypePiece;
  */
 public class ConsoleGui implements Gui {
 
-    @Override
-    public void showBoard(Board[][] board) {
+    public void showBoard(Board board){
+
+
         System.out.println("?                                           ?");
         System.out.println("     A   B   C   D   E   F   G   H   I   J");
-        for(int i = 0; i < board.length; i++){
+        for(int i = 0; i < board.getSize(); i++){
             switch (i)
             {
                 case 0:System.out.print(" 01 ");
@@ -35,19 +36,22 @@ public class ConsoleGui implements Gui {
                     break;
                 case 9:System.out.print(" 10 ");
             }
-            for(int j =0; j< board[i].length;j++){
-                if(board[i][j].getStatus() == TypePiece.Status.EMPTY){
+            for(int j =0; j< board.getSize();j++){
+                if(board.getPieces()[i][j].getStatus() == TypePiece.Status.EMPTY){
                     System.out.printf("_~_|");
-                }else if(board[i][j].getStatus() == TypePiece.Status.BLACK){
+                }else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.BLACK){
                     System.out.printf("_X_|");
-                }else if(board[i][j].getStatus() == TypePiece.Status.WHITE){
-                    System.out.printf("_O_|");
-                }
 
+                }else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.WHITE){
+                    System.out.printf("_O_|");
+
+                }
             }
+
             System.out.println();
-        }
-        System.out.println("?                                           ?");
+        }System.out.println("?                                           ?");
+        System.out.println("black pieces left = "+board.getBlackLeft());
+        System.out.println("white pieces left = "+board.getWhiteLeft());
 
     }
 }
