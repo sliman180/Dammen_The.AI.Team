@@ -5,6 +5,7 @@ import be.kdg.ai.dammen.board.BoardFactory;
 import be.kdg.ai.dammen.engine.GameEngine;
 import be.kdg.ai.dammen.gui.ConsoleGui;
 import be.kdg.ai.dammen.gui.Gui;
+import be.kdg.ai.dammen.gui.StandaardGui;
 
 /**
  * Created by Sliman on 1-10-2015.
@@ -14,13 +15,16 @@ public class Demo {
     public static void main(String[] args) {
         BoardFactory boardFactory = new BoardFactory();
         Gui consoleGui = new ConsoleGui();
+        Gui standaardGui = new StandaardGui();
         GameEngine gameEngine = new GameEngine();
 
 
 
         gameEngine.setBoardFactory(boardFactory);
         boardFactory.addListeners(gameEngine);
-        gameEngine.setGui(consoleGui);
+        gameEngine.setGui(standaardGui);
+       // gameEngine.setGui(consoleGui);
+
 
 
 
