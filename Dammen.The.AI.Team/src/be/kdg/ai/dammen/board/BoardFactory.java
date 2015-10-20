@@ -12,7 +12,7 @@ import java.util.List;
 public class BoardFactory {
     private Board board;
     private List<BoardListener> listeners;
-
+    private Piece[][] pieces;
 
     public BoardFactory() {
         this.listeners = new ArrayList<BoardListener>();
@@ -29,14 +29,14 @@ public class BoardFactory {
     }
 
     public void createBoard(int dimension) {
-        Piece[][] pieces = new Piece[dimension][dimension];
+        pieces = new Piece[dimension][dimension];
         int blackLeft = 0;
         int whiteLeft = 0;
         
         for(int i = 0; i < pieces.length; i++){
             for(int j =0; j < pieces[i].length; j++){
                 pieces[i][j] = new Piece(TypePiece.Status.EMPTY);
-
+                setAttributesToPiece(i, j);
             }
         }
 
@@ -47,26 +47,30 @@ public class BoardFactory {
                     if ((i % 2) == 0) {
                         //even
                         pieces[i][j + 1] = new Piece(TypePiece.Status.BLACK);
+                        setAttributesToPiece(i, j);
                         blackLeft++;
                         //System.out.println("i:"+ i+ "---- j:"+j);
                     } else if ((i % 2) != 0) {
                         //odd
                         pieces[i][j] = new Piece(TypePiece.Status.BLACK);
+                        setAttributesToPiece(i, j);
                         blackLeft++;
                     }
                 }
-                if(i == 5){
+           /*     if(i == 5){
                     pieces[i][j] = new Piece(TypePiece.Status.EMPTY);
                 }else if(i == 4){
                     pieces[i][j+1] = new Piece(TypePiece.Status.EMPTY);
-                }
+                }   */
 
                 if(i > 5 && (i % 2) == 0){
                     pieces[i][j+1] = new Piece(TypePiece.Status.WHITE);
+                    setAttributesToPiece(i, j);
                     whiteLeft++;
                 }else if(i > 5 && (i % 2) != 0){
                     //odd
                     pieces[i][j] = new Piece(TypePiece.Status.WHITE);
+                    setAttributesToPiece(i, j);
                     whiteLeft++;
                 }
             }
@@ -75,5 +79,11 @@ public class BoardFactory {
         board.setBlackLeft(blackLeft);
         board.setWhiteLeft(whiteLeft);
         notifyListeners();
+    }
+    private void setAttributesToPiece(int i, int j) // i = y; j = x
+    {
+        pieces[i][j].setColumn(j);
+        pieces[i][j].setRow(i);
+        pieces[i][j].setRank(TypePiece.Rank.MAN);
     }
 }

@@ -7,4 +7,6 @@ import be.kdg.ai.dammen.board.Board;
  */
 public interface Gui {
     void showBoard(Board board);
+    void addListeners(GuiListener newListener);
+    void notifyListeners();
 }

@@ -6,36 +6,37 @@ import be.kdg.ai.dammen.board.BoardListener;
 import be.kdg.ai.dammen.gui.Gui;
 import be.kdg.ai.dammen.piece.Piece;
 import be.kdg.ai.dammen.piece.TypePiece;
+import be.kdg.ai.dammen.player.Player;
 
 /**
  * Created by Sliman on 1-10-2015.
  */
 public class GameEngine implements BoardListener {
     private BoardFactory boardFactory;
-    private Gui gui;
     private Board board;
+    private ScreenEngine screenEngine;
     private static final int DIMENSION = 10;
 
     public void initializeGame(){
         boardFactory.createBoard(DIMENSION);
     }
+    public void setScreenEngine(ScreenEngine screenEngine){
+        this.screenEngine = screenEngine;
+    }
 
     public void setBoardFactory(BoardFactory boardFactory){
         this.boardFactory = boardFactory;
     }
-
-    public void setGui(Gui gui){
-        this.gui = gui;
-    }
     @Override
     public void isNewBoard(Board board) {
         this.board = board;
-        refreshBoard();
+        sendBoard();
+    }
+    private void sendBoard()
+    {
+        screenEngine.sendBoard(board);
     }
 
-    private void refreshBoard(){
-        gui.showBoard(board);
-    }
     public void doeZet(String coordinaatOudePion, String coordinaatNieuwePion, int speler) {
         // boolean bezet = false;
         String letter = coordinaatNieuwePion.substring(0,1);
@@ -60,7 +61,81 @@ public class GameEngine implements BoardListener {
         board.getPieces()[getal3-1][getal4] = new Piece(TypePiece.Status.EMPTY);
 
         checkAttack(getal1,getal2,getal3,getal4,speler);
-        refreshBoard();
+        sendBoard();
+    }
+
+    //X is kolom, Y is rij
+    public Piece getPiece(int row, int column){
+        return board.getPieces()[row][column];
+    }
+
+    public void move(Piece currentPiece, Piece destination, Player currentPlayer){
+        if(board.getPieces()[destination.getRow()][destination.getColumn()]
+                .getStatus() != TypePiece.Status.EMPTY){
+            return;
+        }
+
+        int currentColumn = currentPiece.getColumn();
+        int currentRow = currentPiece.getRow();
+        int destinationColumn = destination.getColumn();
+        int destinationRow = destination.getRow();
+
+        if (currentPiece.getRank() == TypePiece.Rank.KING)
+        {
+            if (moveUp(currentColumn, currentRow, destinationColumn, destinationRow)
+                    || moveDown(currentColumn, currentRow, destinationColumn, destinationRow)){
+                swap(currentPiece, destination);
+            }
+        } else if (currentPiece.getRank() == TypePiece.Rank.MAN)
+        {
+            if (currentPiece.getStatus() == TypePiece.Status.BLACK)
+            {
+                if (moveDown(currentColumn, currentRow, destinationColumn, destinationRow))
+                    swap(currentPiece, destination);
+            } else if (currentPiece.getStatus() == TypePiece.Status.WHITE)
+            {
+                System.out.println("status");
+                if (moveUp(currentColumn, currentRow, destinationColumn, destinationRow))
+                    swap(currentPiece, destination);
+            }
+        }
+
+    }
+    private boolean moveUp(int currentColumn, int currentRow, int destinationColumn, int destinationRow)
+    {
+        if (destinationColumn == currentColumn-1 && destinationRow == currentRow -1)
+        {
+            return true;
+        } else if (destinationColumn == currentColumn-1 && destinationRow == currentRow +1)
+        {
+            return true;
+        }
+        return false;
+    }
+    private boolean moveDown(int currentColumn, int currentRow, int destinationColumn, int destinationRow)
+    {
+        if (destinationColumn == currentColumn+1 && destinationRow == currentRow -1)
+        {
+            return true;
+        } else if (destinationColumn == currentColumn+1 && destinationRow == currentRow +1)
+        {
+            return true;
+        }
+        return false;
+    }
+    private void swap(Piece currentPiece, Piece destination)// kopieer destination piece naar een temp, destination vervangen door current, current vervangen door
+    // temp, vervolgens de coordinaten terug veranderen van elke piece
+    {
+        Piece emptyTempPiece = board.getPieces()[destination.getRow()][destination.getColumn()];
+        board.getPieces()[destination.getRow()][destination.getColumn()] = currentPiece;
+        emptyTempPiece.setColumn(currentPiece.getColumn());
+        emptyTempPiece.setRow(currentPiece.getRow());
+        currentPiece.setColumn(destination.getColumn());
+        currentPiece.setRow(destination.getRow());
+        board.getPieces()[emptyTempPiece.getRow()][emptyTempPiece.getColumn()] = emptyTempPiece;
+
+        System.out.println("Swapped");
+        sendBoard();
     }
 
     public void checkAttack(int getal1,int getal2,int getal3,int getal4, int speler){

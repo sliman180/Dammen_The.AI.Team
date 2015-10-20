@@ -54,4 +54,14 @@ public class ConsoleGui implements Gui {
         System.out.println("white pieces left = "+board.getWhiteLeft());
 
     }
+
+    @Override
+    public void addListeners(GuiListener newListener) {
+
+    }
+
+    @Override
+    public void notifyListeners() {
+
+    }
 }
