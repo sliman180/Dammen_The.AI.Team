@@ -4,6 +4,7 @@ import be.kdg.ai.dammen.board.Board;
 import be.kdg.ai.dammen.board.BoardFactory;
 import be.kdg.ai.dammen.board.BoardListener;
 import be.kdg.ai.dammen.gui.Gui;
+import be.kdg.ai.dammen.gui.StandaardGui;
 import be.kdg.ai.dammen.piece.Piece;
 import be.kdg.ai.dammen.piece.TypePiece;
 import be.kdg.ai.dammen.player.Player;
@@ -16,6 +17,7 @@ public class GameEngine implements BoardListener {
     private Board board;
     private ScreenEngine screenEngine;
     private static final int DIMENSION = 10;
+
 
     public void initializeGame(){
         boardFactory.createBoard(DIMENSION);
@@ -37,6 +39,313 @@ public class GameEngine implements BoardListener {
         screenEngine.sendBoard(board);
     }
 
+    //X is kolom, Y is rij
+    public Piece getPiece(int row, int column){
+        return board.getPieces()[row][column];
+    }
+
+    public void move(Piece currentPiece, Piece destination){
+
+/**/
+        if (currentPiece.getRank() == TypePiece.Rank.KING)
+        {
+                swap(currentPiece, destination);
+                checkAttackForKing(currentPiece,destination);
+
+        } else if (currentPiece.getRank() == TypePiece.Rank.MAN)
+        {
+            if (currentPiece.getStatus() == TypePiece.Status.BLACK)
+            {
+                if (moveDown(currentPiece,destination) || moveUp(currentPiece,destination))
+
+                    swap(currentPiece, destination);
+                    checkRank(destination);
+
+
+
+            }
+            if (currentPiece.getStatus() == TypePiece.Status.WHITE)
+            {// wit kan alleen naar boven zetten, maar als het gaat om aanvallen kan die aan beide kanten aanvallen
+                System.out.println("status");
+                if (moveUp(currentPiece,destination) || moveDown(currentPiece,destination))
+
+                    swap(currentPiece, destination);
+                    checkRank(destination);
+
+
+
+            }
+        }
+
+    }
+    private boolean moveUp(Piece currentPiece, Piece destination)
+    {
+
+        if (destination.getColumn() == currentPiece.getColumn()+1 && destination.getRow() == currentPiece.getRow() -1)
+        {
+            return true;
+        } else if (destination.getColumn() == currentPiece.getColumn()-1 && destination.getRow() == currentPiece.getRow() -1)
+        {
+            return true;
+        }else if (destination.getColumn() == currentPiece.getColumn()-2 && destination.getRow() == currentPiece.getRow() -2)
+        {
+            checkAttack(currentPiece, destination);
+            return true;
+        }else if (destination.getColumn() == currentPiece.getColumn()+2 && destination.getRow() == currentPiece.getRow() -2)
+        {
+            checkAttack(currentPiece, destination);
+            return true;
+        }
+        return false;
+    }
+    private boolean moveDown(Piece currentPiece, Piece destination)
+    {
+        if (destination.getColumn() == currentPiece.getColumn()-1 && destination.getRow() == currentPiece.getRow() +1)
+        {
+            return true;
+        } else if (destination.getColumn() == currentPiece.getColumn()+1 && destination.getRow() == currentPiece.getRow() +1)
+        {
+            return true;
+        }else if (destination.getColumn() == currentPiece.getColumn()-2 && destination.getRow() == currentPiece.getRow() +2)
+        {
+            checkAttack(currentPiece, destination);
+            return true;
+        }else if (destination.getColumn() == currentPiece.getColumn()+2 && destination.getRow() == currentPiece.getRow() +2)
+        {
+            checkAttack(currentPiece, destination);
+            return true;
+        }
+        return false;
+    }
+
+    private void swap(Piece currentPiece, Piece destination)// kopieer destination piece naar een temp, destination vervangen door current, current vervangen door
+    // temp, vervolgens de coordinaten terug veranderen van elke piece
+    {   /*
+        Piece emptyTempPiece = board.getPieces()[destination.getRow()][destination.getColumn()];
+        // destination
+        board.getPieces()[destination.getRow()][destination.getColumn()] = currentPiece;
+        emptyTempPiece.setColumn(currentPiece.getColumn());
+        emptyTempPiece.setRow(currentPiece.getRow());
+        currentPiece.setColumn(destination.getColumn());
+        currentPiece.setRow(destination.getRow());
+        board.getPieces()[emptyTempPiece.getRow()][emptyTempPiece.getColumn()] = emptyTempPiece;
+        */
+        if(currentPiece.getStatus()== TypePiece.Status.BLACK){
+            if(destination.getStatus() == TypePiece.Status.EMPTY){
+                currentPiece.setStatus(TypePiece.Status.EMPTY);
+                destination.setStatus(TypePiece.Status.BLACK);
+
+                System.out.println("Swapped");
+                if(currentPiece.getRank() == TypePiece.Rank.KING){
+                    currentPiece.setStatus(TypePiece.Status.EMPTY);
+                    currentPiece.setRank(TypePiece.Rank.MAN);
+                    destination.setStatus(TypePiece.Status.BLACK);
+                    destination.setRank(TypePiece.Rank.KING);
+                }
+            }
+
+        }else if(currentPiece.getStatus() == TypePiece.Status.WHITE){
+            if(destination.getStatus() == TypePiece.Status.EMPTY){
+                currentPiece.setStatus(TypePiece.Status.EMPTY);
+                destination.setStatus(TypePiece.Status.WHITE);
+                System.out.println("Swapped");
+
+                if(currentPiece.getRank() == TypePiece.Rank.KING){
+                    currentPiece.setStatus(TypePiece.Status.EMPTY);
+                    currentPiece.setRank(TypePiece.Rank.MAN);
+                    destination.setStatus(TypePiece.Status.WHITE);
+                    destination.setRank(TypePiece.Rank.KING);
+                }
+            }
+        }
+
+        sendBoard();
+
+
+
+    }
+    public void checkAttackForKing(Piece currentPiece, Piece destination){
+        int verschilR = currentPiece.getRow() - destination.getRow();
+        int verschilC = currentPiece.getColumn() - destination.getColumn();
+
+        int count = 0;
+
+        if(verschilR > 0 && verschilC > 0){
+            for(int i = 0; i < verschilR;i++){
+                if(board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()-i].getStatus() == TypePiece.Status.BLACK){
+                    count++;
+                }
+                if(board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()-i].getStatus() == TypePiece.Status.WHITE){
+                    count++;
+                }
+            }
+
+            if(count == 1){
+                for(int i = 0; i < verschilR;i++){
+                    board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()-i].setStatus(TypePiece.Status.EMPTY);
+                }
+            }
+        }
+        if(verschilR > 0 && verschilC < 0){
+            for(int i = 0; i < verschilR;i++){
+                if(board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()+i].getStatus() == TypePiece.Status.BLACK){
+                    count++;
+                }
+                if(board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()+i].getStatus() == TypePiece.Status.WHITE){
+                    count++;
+                }
+            }
+
+            if(count == 1){
+                for(int i = 0; i < verschilR;i++){
+                    board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()+i].setStatus(TypePiece.Status.EMPTY);
+                }
+            }
+        }
+        if(verschilR < 0 && verschilC < 0){
+            int verschil = destination.getRow() - currentPiece.getRow();
+            for(int i = 0; i < verschil;i++){
+                if(board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()+i].getStatus() == TypePiece.Status.BLACK){
+                    count++;
+                }
+                if(board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()+i].getStatus() == TypePiece.Status.WHITE){
+                    count++;
+                }
+            }
+
+            if(count == 1){
+                for(int i = 0; i < verschil;i++){
+                    board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()+i].setStatus(TypePiece.Status.EMPTY);
+                }
+            }
+        }
+        if(verschilR < 0 && verschilC > 0){
+            int verschil = destination.getRow() - currentPiece.getRow();
+            for(int i = 0; i < verschil;i++){
+                if(board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()-i].getStatus() == TypePiece.Status.BLACK){
+                    count++;
+                }
+                if(board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()-i].getStatus() == TypePiece.Status.WHITE){
+                    count++;
+                }
+            }
+
+            if(count == 1){
+                for(int i = 0; i < verschil;i++){
+                    board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()-i].setStatus(TypePiece.Status.EMPTY);
+                }
+            }
+        }
+        sendBoard();
+
+    }
+    public void checkAttack(Piece currentPiece, Piece destination) {
+
+        int verschilRow = currentPiece.getRow() - destination.getRow();
+        int verschilColumn = currentPiece.getColumn() - destination.getColumn();
+
+        if (destination.getStatus() == TypePiece.Status.EMPTY) {
+            if (verschilRow == 2 && verschilColumn == -2) {
+                verschilRow = currentPiece.getRow() - 1;
+                verschilColumn = currentPiece.getColumn() + 1;
+                Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
+                tempPiece.setStatus(TypePiece.Status.EMPTY);
+                System.out.println("Attack");
+            } else if (verschilRow == -2 && verschilColumn == 2) {
+                verschilRow = currentPiece.getRow() + 1;
+                verschilColumn = currentPiece.getColumn() - 1;
+                Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
+                tempPiece.setStatus(TypePiece.Status.EMPTY);
+                System.out.println("Attack");
+            }else if (verschilRow == 2 && verschilColumn == 2) {
+                verschilRow = currentPiece.getRow() - 1;
+                verschilColumn = currentPiece.getColumn() - 1;
+                Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
+                tempPiece.setStatus(TypePiece.Status.EMPTY);
+                System.out.println("Attack");
+            } else if (verschilRow == -2 && verschilColumn == -2) {
+                verschilRow = currentPiece.getRow() + 1;
+                verschilColumn = currentPiece.getColumn() + 1;
+                Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
+                tempPiece.setStatus(TypePiece.Status.EMPTY);
+                System.out.println("Attack");
+            }
+         }
+        sendBoard();
+
+    }
+
+    public void checkRank(Piece destination){
+        Piece tempPiece = board.getPieces()[destination.getRow()][destination.getColumn()];
+        if(tempPiece.getStatus() == TypePiece.Status.WHITE) {
+            if (destination.getColumn() == 1 || destination.getColumn() == 3 || destination.getColumn() == 5 || destination.getColumn() == 7 || destination.getColumn() == 9) {
+                if (destination.getRow() == 0) {
+                    tempPiece.setRank(TypePiece.Rank.KING);
+                }
+            }
+        }
+
+        if(tempPiece.getStatus() == TypePiece.Status.BLACK) {
+            if (destination.getColumn() == 0 || destination.getColumn() == 2 || destination.getColumn() == 4 || destination.getColumn() == 6 || destination.getColumn() == 8) {
+                if (destination.getRow() == 9) {
+                    tempPiece.setRank(TypePiece.Rank.KING);
+                }
+            }
+        }
+
+        sendBoard();
+
+    }
+/*
+    public void checkAttack(int getal1,int getal2,int getal3,int getal4, int speler){
+        System.out.println(getal2 + " "+ getal1);
+        System.out.println(getal4 + " "+ getal3);
+
+        int a = getal4-getal2; //
+        int b = getal3-getal1; //
+
+
+        //  System.out.println("a="+a+" b="+b);
+
+       if(speler ==1) {
+            if (((getal4 - getal2) == a && (getal3 - getal1) == b)) {
+                int coord1 = getal4 + 1; // getal4
+                int coord2 = getal3 - 1; // getal3
+                System.out.println(coord2 + " " + coord1);
+                if (pieces[coord2 - 1][coord1].getStatus() == TypePiece.Status.BLACK) {
+                    pieces[coord2 - 1][coord1] = new Board(TypePiece.Status.EMPTY);
+                }
+            }
+        }
+
+        if(a >= 2 && b >=2){
+            if(((getal4-getal2) == a && (getal3-getal1) == b)){
+                int coord1 = getal4 - (a-1);
+                int coord2 = getal3 - (b-1);
+                System.out.println(coord1 +" " + coord2);
+                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.BLACK){
+                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
+                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.WHITE){
+                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
+            }
+        }
+
+        // attack backwards
+        if(a <= -2 && b <= -2){
+            if(((getal4-getal2)== a && (getal3-getal1) == b)){
+                int coord1 = getal4 + (a+1);
+                int coord2 = getal3 + (b+1);
+                System.out.println(coord1 +" " + coord2);
+                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.BLACK){
+                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
+                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.WHITE){
+                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
+            }
+        }
+
+    }*/
+
+    /*
     public void doeZet(String coordinaatOudePion, String coordinaatNieuwePion, int speler) {
         // boolean bezet = false;
         String letter = coordinaatNieuwePion.substring(0,1);
@@ -63,126 +372,5 @@ public class GameEngine implements BoardListener {
         checkAttack(getal1,getal2,getal3,getal4,speler);
         sendBoard();
     }
-
-    //X is kolom, Y is rij
-    public Piece getPiece(int row, int column){
-        return board.getPieces()[row][column];
-    }
-
-    public void move(Piece currentPiece, Piece destination, Player currentPlayer){
-        if(board.getPieces()[destination.getRow()][destination.getColumn()]
-                .getStatus() != TypePiece.Status.EMPTY){
-            return;
-        }
-
-        int currentColumn = currentPiece.getColumn();
-        int currentRow = currentPiece.getRow();
-        int destinationColumn = destination.getColumn();
-        int destinationRow = destination.getRow();
-
-        if (currentPiece.getRank() == TypePiece.Rank.KING)
-        {
-            if (moveUp(currentColumn, currentRow, destinationColumn, destinationRow)
-                    || moveDown(currentColumn, currentRow, destinationColumn, destinationRow)){
-                swap(currentPiece, destination);
-            }
-        } else if (currentPiece.getRank() == TypePiece.Rank.MAN)
-        {
-            if (currentPiece.getStatus() == TypePiece.Status.BLACK)
-            {
-                if (moveDown(currentColumn, currentRow, destinationColumn, destinationRow))
-                    swap(currentPiece, destination);
-            } else if (currentPiece.getStatus() == TypePiece.Status.WHITE)
-            {
-                System.out.println("status");
-                if (moveUp(currentColumn, currentRow, destinationColumn, destinationRow))
-                    swap(currentPiece, destination);
-            }
-        }
-
-    }
-    private boolean moveUp(int currentColumn, int currentRow, int destinationColumn, int destinationRow)
-    {
-        if (destinationColumn == currentColumn-1 && destinationRow == currentRow -1)
-        {
-            return true;
-        } else if (destinationColumn == currentColumn-1 && destinationRow == currentRow +1)
-        {
-            return true;
-        }
-        return false;
-    }
-    private boolean moveDown(int currentColumn, int currentRow, int destinationColumn, int destinationRow)
-    {
-        if (destinationColumn == currentColumn+1 && destinationRow == currentRow -1)
-        {
-            return true;
-        } else if (destinationColumn == currentColumn+1 && destinationRow == currentRow +1)
-        {
-            return true;
-        }
-        return false;
-    }
-    private void swap(Piece currentPiece, Piece destination)// kopieer destination piece naar een temp, destination vervangen door current, current vervangen door
-    // temp, vervolgens de coordinaten terug veranderen van elke piece
-    {
-        Piece emptyTempPiece = board.getPieces()[destination.getRow()][destination.getColumn()];
-        board.getPieces()[destination.getRow()][destination.getColumn()] = currentPiece;
-        emptyTempPiece.setColumn(currentPiece.getColumn());
-        emptyTempPiece.setRow(currentPiece.getRow());
-        currentPiece.setColumn(destination.getColumn());
-        currentPiece.setRow(destination.getRow());
-        board.getPieces()[emptyTempPiece.getRow()][emptyTempPiece.getColumn()] = emptyTempPiece;
-
-        System.out.println("Swapped");
-        sendBoard();
-    }
-
-    public void checkAttack(int getal1,int getal2,int getal3,int getal4, int speler){
-        System.out.println(getal2 + " "+ getal1);
-        System.out.println(getal4 + " "+ getal3);
-
-        int a = getal4-getal2; //
-        int b = getal3-getal1; //
-
-
-        //  System.out.println("a="+a+" b="+b);
-
-       /* if(speler ==1) {
-            if (((getal4 - getal2) == a && (getal3 - getal1) == b)) {
-                int coord1 = getal4 + 1; // getal4
-                int coord2 = getal3 - 1; // getal3
-                System.out.println(coord2 + " " + coord1);
-                if (pieces[coord2 - 1][coord1].getStatus() == TypePiece.Status.BLACK) {
-                    pieces[coord2 - 1][coord1] = new Board(TypePiece.Status.EMPTY);
-                }
-            }
-        }
-        */
-        if(a >= 2 && b >=2){
-            if(((getal4-getal2) == a && (getal3-getal1) == b)){
-                int coord1 = getal4 - (a-1);
-                int coord2 = getal3 - (b-1);
-                System.out.println(coord1 +" " + coord2);
-                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.BLACK){
-                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
-                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.WHITE){
-                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
-            }
-        }
-
-        // attack backwards
-        if(a <= -2 && b <= -2){
-            if(((getal4-getal2)== a && (getal3-getal1) == b)){
-                int coord1 = getal4 + (a+1);
-                int coord2 = getal3 + (b+1);
-                System.out.println(coord1 +" " + coord2);
-                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.BLACK){
-                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
-                if(board.getPieces()[coord2-1][coord1].getStatus() ==TypePiece.Status.WHITE){
-                    board.getPieces()[coord2-1][coord1] = new Piece(TypePiece.Status.EMPTY);}
-            }
-        }
-
-    }
+*/
 }

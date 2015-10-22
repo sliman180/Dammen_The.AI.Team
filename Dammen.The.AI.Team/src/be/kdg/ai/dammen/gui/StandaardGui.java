@@ -1,6 +1,7 @@
 package be.kdg.ai.dammen.gui;
 
 import be.kdg.ai.dammen.board.Board;
+import be.kdg.ai.dammen.piece.Piece;
 import be.kdg.ai.dammen.piece.TypePiece;
 
 import javax.imageio.ImageIO;
@@ -25,7 +26,7 @@ public class StandaardGui extends JFrame implements Gui {
     private boolean isCreated = false;
     private JLabel whitePieceLabel;
     private JLabel blackPieceLabel;
-    private BufferedImage blackPiece, whitePiece;
+    private BufferedImage blackPiece, whitePiece, blackKingPiece,whiteKingPiece;
     private JPanel boardBackground;
     private Board board;
 
@@ -73,10 +74,14 @@ public class StandaardGui extends JFrame implements Gui {
         // Load images of pieces
         whitePiece = null;
         blackPiece = null;
+        blackKingPiece = null;
+        whiteKingPiece = null;
 
         try {
             whitePiece = ImageIO.read(new File("images\\krem_.png"));
             blackPiece = ImageIO.read(new File("images\\sedefli_mavi.png"));
+            whiteKingPiece = ImageIO.read(new File("images\\krem_King.png"));
+            blackKingPiece = ImageIO.read(new File("images\\sedefli_mavi_King.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -136,12 +141,26 @@ public class StandaardGui extends JFrame implements Gui {
                     ImageIcon whitePieceImageIcon = new ImageIcon(whitePiece.getScaledInstance(width / 13, width / 13, width / 13));
                     whitePieceLabel = new JLabel(whitePieceImageIcon);
                     cell.add(whitePieceLabel);
+                }else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.BLACK && board.getPieces()[i][j].getRank() == TypePiece.Rank.KING){
+                    ImageIcon blackPieceImageIcon = new ImageIcon(blackKingPiece.getScaledInstance(width / 13, width / 13, width / 13));
+                    blackPieceLabel = new JLabel(blackPieceImageIcon);
+                    cell.add(blackPieceLabel);
+                }else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.WHITE && board.getPieces()[i][j].getRank() == TypePiece.Rank.KING){
+                    ImageIcon whitePieceImageIcon = new ImageIcon(whiteKingPiece.getScaledInstance(width / 13, width / 13, width / 13));
+                    whitePieceLabel = new JLabel(whitePieceImageIcon);
+                    cell.add(whitePieceLabel);
                 }
+
             }
         }
         this.add(boardBackground);
         revalidate();
         repaint();
+    }
+
+    @Override
+    public void changeColor(Piece piece,Color color){
+        cellArray[piece.getRow()][piece.getColumn()].setBackground(color);
     }
 
     private void addMouseActions(JPanel cell, final int row, final int column) {

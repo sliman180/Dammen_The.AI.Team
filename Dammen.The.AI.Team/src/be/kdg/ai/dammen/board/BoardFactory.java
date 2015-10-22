@@ -36,7 +36,7 @@ public class BoardFactory {
         for(int i = 0; i < pieces.length; i++){
             for(int j =0; j < pieces[i].length; j++){
                 pieces[i][j] = new Piece(TypePiece.Status.EMPTY);
-                setAttributesToPiece(i, j);
+               // setAttributesToPiece(i, j);
             }
         }
 
@@ -47,32 +47,38 @@ public class BoardFactory {
                     if ((i % 2) == 0) {
                         //even
                         pieces[i][j + 1] = new Piece(TypePiece.Status.BLACK);
-                        setAttributesToPiece(i, j);
+                       // setAttributesToPiece(i, j);
                         blackLeft++;
                         //System.out.println("i:"+ i+ "---- j:"+j);
                     } else if ((i % 2) != 0) {
                         //odd
                         pieces[i][j] = new Piece(TypePiece.Status.BLACK);
-                        setAttributesToPiece(i, j);
+                     //   setAttributesToPiece(i, j);
                         blackLeft++;
                     }
                 }
-           /*     if(i == 5){
+                /*if(i == 5){
                     pieces[i][j] = new Piece(TypePiece.Status.EMPTY);
                 }else if(i == 4){
                     pieces[i][j+1] = new Piece(TypePiece.Status.EMPTY);
-                }   */
+                }*/
 
                 if(i > 5 && (i % 2) == 0){
                     pieces[i][j+1] = new Piece(TypePiece.Status.WHITE);
-                    setAttributesToPiece(i, j);
+                   // setAttributesToPiece(i, j);
                     whiteLeft++;
                 }else if(i > 5 && (i % 2) != 0){
                     //odd
                     pieces[i][j] = new Piece(TypePiece.Status.WHITE);
-                    setAttributesToPiece(i, j);
+                   // setAttributesToPiece(i, j);
                     whiteLeft++;
                 }
+            }
+        }
+
+        for(int i = 0; i < pieces.length; i++){
+            for(int j =0; j < pieces[i].length; j++){
+                setAttributesToPiece(i, j);
             }
         }
         board = new Board(pieces,dimension);

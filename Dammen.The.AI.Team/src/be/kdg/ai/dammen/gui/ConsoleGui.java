@@ -1,7 +1,10 @@
 package be.kdg.ai.dammen.gui;
 
 import be.kdg.ai.dammen.board.Board;
+import be.kdg.ai.dammen.piece.Piece;
 import be.kdg.ai.dammen.piece.TypePiece;
+
+import java.awt.*;
 
 /**
  * Created by Ali Imran on 11/10/2015.
@@ -62,6 +65,11 @@ public class ConsoleGui implements Gui {
 
     @Override
     public void notifyListeners() {
+
+    }
+
+    @Override
+    public void changeColor(Piece piece, Color color) {
 
     }
 }

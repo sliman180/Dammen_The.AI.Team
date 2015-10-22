@@ -41,6 +41,7 @@ public class Demo {
 
         Piece currentPiece = gameEngine.getPiece(3,0);
         Piece destination = gameEngine.getPiece(4,1);
+
        // gameEngine.move(currentPiece, destination, playerWhite);
 
     /*    System.out.println("Row=" + gameEngine.getPiece(3, 0).getRow() + " Column=" + gameEngine.getPiece(3, 0)

@@ -6,7 +6,13 @@ package be.kdg.ai.dammen.piece;
 public class Piece {
     private TypePiece.Status status;
     private TypePiece.Rank rank;
-    private int column, row;
+    private int column;
+
+    public void setStatus(TypePiece.Status status) {
+        this.status = status;
+    }
+
+    private int row;
 
     public Piece(TypePiece.Status status) {
         this.status = status;
