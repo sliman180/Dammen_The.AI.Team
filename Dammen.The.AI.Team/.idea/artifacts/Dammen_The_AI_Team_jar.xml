@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Dammen.The.AI.Team:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Dammen_The_AI_Team_jar</output-path>
+    <root id="archive" name="Dammen.The.AI.Team.jar">
+      <element id="module-output" name="Dammen.The.AI.Team" />
+    </root>
+  </artifact>
+</component>

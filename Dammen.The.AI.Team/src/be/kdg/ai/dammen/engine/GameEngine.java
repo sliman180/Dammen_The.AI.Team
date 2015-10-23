@@ -8,6 +8,8 @@ import be.kdg.ai.dammen.gui.StandaardGui;
 import be.kdg.ai.dammen.piece.Piece;
 import be.kdg.ai.dammen.piece.TypePiece;
 import be.kdg.ai.dammen.player.Player;
+import be.kdg.ai.dammen.player.PlayerFactory;
+import be.kdg.ai.dammen.player.PlayerListener;
 
 /**
  * Created by Sliman on 1-10-2015.
@@ -16,11 +18,14 @@ public class GameEngine implements BoardListener {
     private BoardFactory boardFactory;
     private Board board;
     private ScreenEngine screenEngine;
+
     private static final int DIMENSION = 10;
+    private boolean attack = false;
 
 
     public void initializeGame(){
-        boardFactory.createBoard(DIMENSION);
+         boardFactory.createBoard(DIMENSION);
+
     }
     public void setScreenEngine(ScreenEngine screenEngine){
         this.screenEngine = screenEngine;
@@ -29,11 +34,15 @@ public class GameEngine implements BoardListener {
     public void setBoardFactory(BoardFactory boardFactory){
         this.boardFactory = boardFactory;
     }
+
+
     @Override
     public void isNewBoard(Board board) {
         this.board = board;
         sendBoard();
     }
+
+
     private void sendBoard()
     {
         screenEngine.sendBoard(board);
@@ -44,57 +53,61 @@ public class GameEngine implements BoardListener {
         return board.getPieces()[row][column];
     }
 
-    public void move(Piece currentPiece, Piece destination){
+    public void move(Piece currentPiece, Piece destination, Player player){
 
 /**/
+        //System.out.println(player.getName());
         if (currentPiece.getRank() == TypePiece.Rank.KING)
         {
+            if(checkAmountBeforeSwapping(currentPiece,destination)){
                 swap(currentPiece, destination);
                 checkAttackForKing(currentPiece,destination);
+            }
 
         } else if (currentPiece.getRank() == TypePiece.Rank.MAN)
         {
-            if (currentPiece.getStatus() == TypePiece.Status.BLACK)
+            if (player.getStatus() == TypePiece.Status.BLACK)
             {
-                if (moveDown(currentPiece,destination) || moveUp(currentPiece,destination))
-
+                if (moveDown(currentPiece,destination) || moveUp(currentPiece,destination)) {
                     swap(currentPiece, destination);
                     checkRank(destination);
-
-
-
+                }
             }
-            if (currentPiece.getStatus() == TypePiece.Status.WHITE)
-            {// wit kan alleen naar boven zetten, maar als het gaat om aanvallen kan die aan beide kanten aanvallen
+            if (player.getStatus() == TypePiece.Status.WHITE)
+            {
                 System.out.println("status");
-                if (moveUp(currentPiece,destination) || moveDown(currentPiece,destination))
-
+                if (moveUp(currentPiece,destination) || moveDown(currentPiece,destination)) {
                     swap(currentPiece, destination);
                     checkRank(destination);
-
-
-
+                }
             }
         }
 
     }
     private boolean moveUp(Piece currentPiece, Piece destination)
     {
-
         if (destination.getColumn() == currentPiece.getColumn()+1 && destination.getRow() == currentPiece.getRow() -1)
         {
             return true;
         } else if (destination.getColumn() == currentPiece.getColumn()-1 && destination.getRow() == currentPiece.getRow() -1)
         {
             return true;
-        }else if (destination.getColumn() == currentPiece.getColumn()-2 && destination.getRow() == currentPiece.getRow() -2)
+        }
+
+        if (destination.getColumn() == currentPiece.getColumn()-2 && destination.getRow() == currentPiece.getRow() -2)
         {
-            checkAttack(currentPiece, destination);
-            return true;
+            Piece tempPiece = board.getPieces()[currentPiece.getRow()-1][currentPiece.getColumn()-1];
+            if(tempPiece.getStatus() != TypePiece.Status.EMPTY){
+                checkAttack(currentPiece, destination);
+                return attack;
+            }
         }else if (destination.getColumn() == currentPiece.getColumn()+2 && destination.getRow() == currentPiece.getRow() -2)
         {
-            checkAttack(currentPiece, destination);
-            return true;
+            Piece tempPiece = board.getPieces()[currentPiece.getRow()-1][currentPiece.getColumn()+1];
+            if(tempPiece.getStatus() != TypePiece.Status.EMPTY){
+                checkAttack(currentPiece, destination);
+                return attack;
+            }
         }
         return false;
     }
@@ -106,14 +119,23 @@ public class GameEngine implements BoardListener {
         } else if (destination.getColumn() == currentPiece.getColumn()+1 && destination.getRow() == currentPiece.getRow() +1)
         {
             return true;
-        }else if (destination.getColumn() == currentPiece.getColumn()-2 && destination.getRow() == currentPiece.getRow() +2)
+        }
+
+        if (destination.getColumn() == currentPiece.getColumn()-2 && destination.getRow() == currentPiece.getRow() +2)
         {
+            Piece tempPiece = board.getPieces()[currentPiece.getRow()+1][currentPiece.getColumn()-1];
+            System.out.println(tempPiece.getStatus());
+            if(tempPiece.getStatus() != TypePiece.Status.EMPTY){
             checkAttack(currentPiece, destination);
-            return true;
+            return attack;
+            }
         }else if (destination.getColumn() == currentPiece.getColumn()+2 && destination.getRow() == currentPiece.getRow() +2)
         {
-            checkAttack(currentPiece, destination);
-            return true;
+            Piece tempPiece = board.getPieces()[currentPiece.getRow()+1][currentPiece.getColumn()+1];
+            if(tempPiece.getStatus() != TypePiece.Status.EMPTY) {
+                checkAttack(currentPiece, destination);
+                return attack;
+            }
         }
         return false;
     }
@@ -164,6 +186,71 @@ public class GameEngine implements BoardListener {
 
 
     }
+
+    public boolean checkAmountBeforeSwapping(Piece currentPiece, Piece destination){
+
+        int verschilR = currentPiece.getRow() - destination.getRow();
+        int verschilC = currentPiece.getColumn() - destination.getColumn();
+        int count = 0;
+                // 2 -2
+
+        if(verschilR > 0 && verschilC < 0){
+            for (int i = 1; i < verschilR+1;i++){
+                if(board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()+i].getStatus() != TypePiece.Status.EMPTY){
+                    count++;
+                }
+                if(count <= 1){
+                  //  System.out.println("11111 = "+board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()+i].getRow());
+                    if (destination.getColumn() == currentPiece.getColumn()+i && destination.getRow() == currentPiece.getRow()-i)
+                    {
+                        return true;
+                    }
+
+                }
+            }
+        }else if(verschilR > 0 && verschilC > 0){
+            for (int i = 1; i < verschilR+1;i++){
+                if(board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()-i].getStatus() != TypePiece.Status.EMPTY){
+                    count++;
+                }
+                if(count <= 1){
+
+                    if (destination.getColumn() == currentPiece.getColumn()-i && destination.getRow() == currentPiece.getRow() -i)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }else if(verschilR < 0 && verschilC > 0){
+            int verschil = destination.getRow() - currentPiece.getRow();
+            for (int i = 1; i < verschil+1;i++){
+                if(board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()-i].getStatus() != TypePiece.Status.EMPTY){
+                    count++;
+                }
+                if(count <= 1){
+                    if (destination.getColumn() == currentPiece.getColumn()-i && destination.getRow() == currentPiece.getRow() +i)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }else if(verschilR < 0 && verschilC < 0){
+            int verschil = destination.getRow() - currentPiece.getRow();
+            for (int i = 1; i < verschil+1;i++){
+                if(board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()+i].getStatus() != TypePiece.Status.EMPTY){
+                    count++;
+                }
+                if(count <=1){
+                    if (destination.getColumn() == currentPiece.getColumn()+i && destination.getRow() == currentPiece.getRow() +i)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
     public void checkAttackForKing(Piece currentPiece, Piece destination){
         int verschilR = currentPiece.getRow() - destination.getRow();
         int verschilC = currentPiece.getColumn() - destination.getColumn();
@@ -179,12 +266,13 @@ public class GameEngine implements BoardListener {
                     count++;
                 }
             }
-
             if(count == 1){
+               // swap(currentPiece, destination);
                 for(int i = 0; i < verschilR;i++){
                     board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()-i].setStatus(TypePiece.Status.EMPTY);
                 }
             }
+
         }
         if(verschilR > 0 && verschilC < 0){
             for(int i = 0; i < verschilR;i++){
@@ -197,6 +285,7 @@ public class GameEngine implements BoardListener {
             }
 
             if(count == 1){
+               //swap(currentPiece, destination);
                 for(int i = 0; i < verschilR;i++){
                     board.getPieces()[currentPiece.getRow()-i][currentPiece.getColumn()+i].setStatus(TypePiece.Status.EMPTY);
                 }
@@ -214,6 +303,7 @@ public class GameEngine implements BoardListener {
             }
 
             if(count == 1){
+                //swap(currentPiece, destination);
                 for(int i = 0; i < verschil;i++){
                     board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()+i].setStatus(TypePiece.Status.EMPTY);
                 }
@@ -229,8 +319,8 @@ public class GameEngine implements BoardListener {
                     count++;
                 }
             }
-
             if(count == 1){
+                //swap(currentPiece, destination);
                 for(int i = 0; i < verschil;i++){
                     board.getPieces()[currentPiece.getRow()+i][currentPiece.getColumn()-i].setStatus(TypePiece.Status.EMPTY);
                 }
@@ -249,26 +339,74 @@ public class GameEngine implements BoardListener {
                 verschilRow = currentPiece.getRow() - 1;
                 verschilColumn = currentPiece.getColumn() + 1;
                 Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
-                tempPiece.setStatus(TypePiece.Status.EMPTY);
-                System.out.println("Attack");
+                if(currentPiece.getStatus() == TypePiece.Status.WHITE){
+                    if(tempPiece.getStatus() == TypePiece.Status.BLACK){
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }else if(currentPiece.getStatus() == TypePiece.Status.BLACK){
+                    if(tempPiece.getStatus() == TypePiece.Status.WHITE){
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }
+
             } else if (verschilRow == -2 && verschilColumn == 2) {
                 verschilRow = currentPiece.getRow() + 1;
                 verschilColumn = currentPiece.getColumn() - 1;
                 Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
-                tempPiece.setStatus(TypePiece.Status.EMPTY);
-                System.out.println("Attack");
+                if(currentPiece.getStatus() == TypePiece.Status.WHITE){
+                    if(tempPiece.getStatus() == TypePiece.Status.BLACK){
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }else if(currentPiece.getStatus() == TypePiece.Status.BLACK) {
+                    if (tempPiece.getStatus() == TypePiece.Status.WHITE) {
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }
+
             }else if (verschilRow == 2 && verschilColumn == 2) {
                 verschilRow = currentPiece.getRow() - 1;
                 verschilColumn = currentPiece.getColumn() - 1;
                 Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
-                tempPiece.setStatus(TypePiece.Status.EMPTY);
-                System.out.println("Attack");
+                if(currentPiece.getStatus() == TypePiece.Status.WHITE){
+                    if(tempPiece.getStatus() == TypePiece.Status.BLACK){
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }else if(currentPiece.getStatus() == TypePiece.Status.BLACK){
+                    if(tempPiece.getStatus() == TypePiece.Status.WHITE){
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }
+
             } else if (verschilRow == -2 && verschilColumn == -2) {
                 verschilRow = currentPiece.getRow() + 1;
                 verschilColumn = currentPiece.getColumn() + 1;
                 Piece tempPiece = board.getPieces()[verschilRow][verschilColumn];
-                tempPiece.setStatus(TypePiece.Status.EMPTY);
-                System.out.println("Attack");
+                if(currentPiece.getStatus() == TypePiece.Status.WHITE){
+                    if(tempPiece.getStatus() == TypePiece.Status.BLACK){
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }else if(currentPiece.getStatus() == TypePiece.Status.BLACK){
+                    if(tempPiece.getStatus() == TypePiece.Status.WHITE){
+                        tempPiece.setStatus(TypePiece.Status.EMPTY);
+                        attack = true;
+                        System.out.println("Attack");
+                    }
+                }
+
             }
          }
         sendBoard();
@@ -296,6 +434,8 @@ public class GameEngine implements BoardListener {
         sendBoard();
 
     }
+
+
 /*
     public void checkAttack(int getal1,int getal2,int getal3,int getal4, int speler){
         System.out.println(getal2 + " "+ getal1);

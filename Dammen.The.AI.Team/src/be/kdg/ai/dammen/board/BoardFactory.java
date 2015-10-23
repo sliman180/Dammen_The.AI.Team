@@ -90,6 +90,6 @@ public class BoardFactory {
     {
         pieces[i][j].setColumn(j);
         pieces[i][j].setRow(i);
-        pieces[i][j].setRank(TypePiece.Rank.MAN);
+        pieces[i][j].setRank(TypePiece.Rank.KING);
     }
 }

@@ -131,7 +131,17 @@ public class StandaardGui extends JFrame implements Gui {
                 JPanel cell = cellArray[i][j];
                 if (board.getPieces()[i][j].getStatus() == TypePiece.Status.EMPTY) {
                     cell.removeAll();
-                } else if (board.getPieces()[i][j].getStatus() == TypePiece.Status.BLACK) {
+                }
+                else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.BLACK && board.getPieces()[i][j].getRank() == TypePiece.Rank.KING){
+                    ImageIcon blackPieceImageIcon = new ImageIcon(blackKingPiece.getScaledInstance(width / 13, width / 13, width / 13));
+                    blackPieceLabel = new JLabel(blackPieceImageIcon);
+                    cell.add(blackPieceLabel);
+                }else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.WHITE && board.getPieces()[i][j].getRank() == TypePiece.Rank.KING){
+                    ImageIcon whitePieceImageIcon = new ImageIcon(whiteKingPiece.getScaledInstance(width / 13, width / 13, width / 13));
+                    whitePieceLabel = new JLabel(whitePieceImageIcon);
+                    cell.add(whitePieceLabel);
+                }
+                else if (board.getPieces()[i][j].getStatus() == TypePiece.Status.BLACK) {
                     // the width is divided by 13 to make the piece fit in the cell
                     ImageIcon blackPieceImageIcon = new ImageIcon(blackPiece.getScaledInstance(width / 13, width / 13, width / 13));
                     blackPieceLabel = new JLabel(blackPieceImageIcon);
@@ -139,14 +149,6 @@ public class StandaardGui extends JFrame implements Gui {
                 } else if (board.getPieces()[i][j].getStatus() == TypePiece.Status.WHITE) {
                     // the width is divided by 13 to make the piece fit in the cell
                     ImageIcon whitePieceImageIcon = new ImageIcon(whitePiece.getScaledInstance(width / 13, width / 13, width / 13));
-                    whitePieceLabel = new JLabel(whitePieceImageIcon);
-                    cell.add(whitePieceLabel);
-                }else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.BLACK && board.getPieces()[i][j].getRank() == TypePiece.Rank.KING){
-                    ImageIcon blackPieceImageIcon = new ImageIcon(blackKingPiece.getScaledInstance(width / 13, width / 13, width / 13));
-                    blackPieceLabel = new JLabel(blackPieceImageIcon);
-                    cell.add(blackPieceLabel);
-                }else if(board.getPieces()[i][j].getStatus() == TypePiece.Status.WHITE && board.getPieces()[i][j].getRank() == TypePiece.Rank.KING){
-                    ImageIcon whitePieceImageIcon = new ImageIcon(whiteKingPiece.getScaledInstance(width / 13, width / 13, width / 13));
                     whitePieceLabel = new JLabel(whitePieceImageIcon);
                     cell.add(whitePieceLabel);
                 }

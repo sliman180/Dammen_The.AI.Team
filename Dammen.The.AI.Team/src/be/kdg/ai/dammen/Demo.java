@@ -10,6 +10,7 @@ import be.kdg.ai.dammen.gui.StandaardGui;
 import be.kdg.ai.dammen.piece.Piece;
 import be.kdg.ai.dammen.piece.TypePiece;
 import be.kdg.ai.dammen.player.Player;
+import be.kdg.ai.dammen.player.PlayerFactory;
 
 /**
  * Created by Sliman on 1-10-2015.
@@ -17,17 +18,17 @@ import be.kdg.ai.dammen.player.Player;
 public class Demo {
 
     public static void main(String[] args) {
-        Player playerBlack = new Player("Black-Player", TypePiece.Status.BLACK);
-        Player playerWhite = new Player("White-Player", TypePiece.Status.WHITE);
+
 
         BoardFactory boardFactory = new BoardFactory();
-        Gui consoleGui = new ConsoleGui();
+        PlayerFactory playerFactory = new PlayerFactory();
+       // Gui consoleGui = new ConsoleGui();
         GameEngine gameEngine = new GameEngine();
         ScreenEngine screenEngine = new ScreenEngine();
-        gameEngine.setScreenEngine(screenEngine);
-        screenEngine.setGameEngine(gameEngine);
         Gui standaardGui = new StandaardGui();
 
+        gameEngine.setScreenEngine(screenEngine);
+        screenEngine.setGameEngine(gameEngine);
         screenEngine.setGui(standaardGui);
         standaardGui.addListeners(screenEngine);
 
@@ -51,8 +52,6 @@ public class Demo {
     //    gameEngine.doeZet("B07", "C06", 1);
     //    gameEngine.doeZet("A04","B05",2);
     //    gameEngine.doeZet("C06","A04",1);
-
-
 
 
     }
