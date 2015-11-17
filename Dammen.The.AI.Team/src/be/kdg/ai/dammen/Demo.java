@@ -1,15 +1,11 @@
 package be.kdg.ai.dammen;
 
-import be.kdg.ai.dammen.board.Board;
 import be.kdg.ai.dammen.board.BoardFactory;
 import be.kdg.ai.dammen.engine.GameEngine;
 import be.kdg.ai.dammen.engine.ScreenEngine;
-import be.kdg.ai.dammen.gui.ConsoleGui;
 import be.kdg.ai.dammen.gui.Gui;
-import be.kdg.ai.dammen.gui.StandaardGui;
+import be.kdg.ai.dammen.gui.StandardGui;
 import be.kdg.ai.dammen.piece.Piece;
-import be.kdg.ai.dammen.piece.TypePiece;
-import be.kdg.ai.dammen.player.Player;
 import be.kdg.ai.dammen.player.PlayerFactory;
 
 /**
@@ -25,7 +21,7 @@ public class Demo {
        // Gui consoleGui = new ConsoleGui();
         GameEngine gameEngine = new GameEngine();
         ScreenEngine screenEngine = new ScreenEngine();
-        Gui standaardGui = new StandaardGui();
+        Gui standaardGui = new StandardGui();
 
         gameEngine.setScreenEngine(screenEngine);
         screenEngine.setGameEngine(gameEngine);

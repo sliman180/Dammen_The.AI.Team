@@ -3,13 +3,9 @@ package be.kdg.ai.dammen.engine;
 import be.kdg.ai.dammen.board.Board;
 import be.kdg.ai.dammen.board.BoardFactory;
 import be.kdg.ai.dammen.board.BoardListener;
-import be.kdg.ai.dammen.gui.Gui;
-import be.kdg.ai.dammen.gui.StandaardGui;
 import be.kdg.ai.dammen.piece.Piece;
 import be.kdg.ai.dammen.piece.TypePiece;
 import be.kdg.ai.dammen.player.Player;
-import be.kdg.ai.dammen.player.PlayerFactory;
-import be.kdg.ai.dammen.player.PlayerListener;
 
 /**
  * Created by Sliman on 1-10-2015.

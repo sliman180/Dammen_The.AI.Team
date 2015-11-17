@@ -6,4 +6,5 @@ package be.kdg.ai.dammen.gui;
 public interface GuiListener {
     void hover(int row, int column);
     void clicked(int row, int column);
+    void newGame();
 }

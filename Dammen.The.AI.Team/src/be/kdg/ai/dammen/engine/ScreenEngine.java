@@ -72,4 +72,9 @@ public class ScreenEngine implements GuiListener {
             selected = false;
         }
     }
+
+    @Override
+    public void newGame() {
+        gameEngine.initializeGame();
+    }
 }

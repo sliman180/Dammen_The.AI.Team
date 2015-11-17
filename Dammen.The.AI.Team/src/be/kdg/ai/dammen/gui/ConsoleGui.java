@@ -68,6 +68,7 @@ public class ConsoleGui implements Gui {
 
     }
 
+
     @Override
     public void changeColor(Piece piece, Color color) {
 
