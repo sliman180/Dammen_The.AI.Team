@@ -33,8 +33,8 @@ public class StandardGui extends JFrame implements Gui {
     private Board board;
 
     public StandardGui() {
-        width = 500;
-        height = 500;
+        width = 600;
+        height = 600;
         listeners = new ArrayList<GuiListener>();
         initializeJFrame();
     }
