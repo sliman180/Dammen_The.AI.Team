@@ -6,7 +6,8 @@ import be.kdg.ai.checkers.domain.board.Board;
 import be.kdg.ai.checkers.domain.board.ForceAttack;
 import be.kdg.ai.checkers.domain.board.Position;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Sayu on 24/11/2015.
@@ -19,9 +20,10 @@ public class MoveCommand implements IMoveCommand {
 
     private List<MoveListener> listeners;
     private BoardState boardState;
-    private Position current, destination;
+    private Position current, destination,temp;
     private Position forceDestinationPosition;
     private boolean treeFiller;
+
 
     private boolean attackMode, searchingForcedAttacks, swappable;
 
@@ -70,7 +72,10 @@ public class MoveCommand implements IMoveCommand {
         if (boardState.getForcedToAttackPieces().size() > 0 && !searchingForcedAttacks){
             if (checkCorrectForcedAttack(boardState, current, destination)) {
                 attackMode = true;
+                checkSteps = destination.getRow() - current.getRow();
+                checkSteps = Math.abs(checkSteps);
                 if (checkAttack() || checkAttackKing())
+                    temp = new Position(destination.getRow(), destination.getColumn());
                     swap();
             }
         } else {
@@ -92,11 +97,9 @@ public class MoveCommand implements IMoveCommand {
 
             switch (boardState.getBoard().getPieces()[current.getRow()][current.getColumn()]) {
                 case BLACK_KING:
-                    checkMoveForKing(Piece.BLACK_KING);
-                    break;
+                    return checkMoveForKing(Piece.BLACK_KING);
                 case WHITE_KING:
-                    checkMoveForKing(Piece.WHITE_KING);
-                    break;
+                    return checkMoveForKing(Piece.WHITE_KING);
                 case WHITE:
                     return checkMove(Piece.WHITE);
                 case BLACK:
@@ -117,9 +120,12 @@ public class MoveCommand implements IMoveCommand {
         checkSteps = Math.abs(checkSteps);
 
         if(color == Piece.WHITE_KING || color == Piece.BLACK_KING){
-            if((checkMoveDown() || checkMoveUp()) && checkAttackKing()){
+            if((checkMoveDown() || checkMoveUp()) && checkAttackKing() && checkOverlapping()){
                 swap();
                 return true;
+            }else{
+                if((checkMoveDown() || checkMoveUp()) && checkOverlapping())
+                    swap();
             }
         }
         return false;
@@ -172,16 +178,13 @@ public class MoveCommand implements IMoveCommand {
 
             if (attackMode)
             {
-                searchForcedAttacks();
+                searchForcedAttackOnePiece();
                 if(boardState.getForcedToAttackPieces().size() == 0){
                     boardState.getPlayer().toggleTurn();
                 }
             }else{
                 boardState.getPlayer().toggleTurn();
-                //searchForcedAttacks();
             }
-           // boardState.getPlayer().toggleTurn();
-            // set the steps to ordinary step = 1
             checkSteps = MAX_MOVE_STEPS;
             searchForcedAttacks();
             notifyListeners();
@@ -205,9 +208,56 @@ public class MoveCommand implements IMoveCommand {
         }
     }
 
+    private boolean checkOverlapping(){
+        ArrayList<Piece> pieces = new ArrayList<>();
+
+        Position tryEatPos = null;
+        for(int i = 1; i < checkSteps;i++){
+            if (current.getRow() > destination.getRow() && current.getColumn() > destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() + i, destination.getColumn() + i);
+
+            } else if (current.getRow() > destination.getRow() && current.getColumn() < destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() + i, destination.getColumn() - i);
+
+            } else if (current.getRow() < destination.getRow() && current.getColumn() < destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() - i, destination.getColumn() - i);
+
+            } else if (current.getRow() < destination.getRow() && current.getColumn() > destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() - i, destination.getColumn() + i);
+
+            }
+            if(tryEatPos!=null)
+                if(boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE_KING){
+                    pieces.add(Piece.WHITE_KING);
+                }else if(boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK_KING){
+                    pieces.add(Piece.BLACK_KING);
+                }else if(boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE){
+                    pieces.add(Piece.WHITE);
+                }else if(boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK){
+                    pieces.add(Piece.BLACK);
+                }
+
+        }
+
+        if(boardState.getPlayer().isMyTurn()){
+            if(pieces.contains(Piece.WHITE_KING)||pieces.contains(Piece.WHITE)){
+                return false;
+            }else if((pieces.contains(Piece.BLACK_KING)||pieces.contains(Piece.BLACK)) && pieces.size() > 1){
+                return false;
+            }
+        }else if(!boardState.getPlayer().isMyTurn()){
+            if(pieces.contains(Piece.BLACK_KING)||pieces.contains(Piece.BLACK)){
+                return false;
+            }else if((pieces.contains(Piece.WHITE_KING)||pieces.contains(Piece.WHITE)) && pieces.size() > 1){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private boolean checkAttack() {
         if (!attackMode && !searchingForcedAttacks) return true;
-      //  System.out.println(boardState.getPlayer().isMyTurn());
         Position tryEatPos = null;
 
             if (current.getRow() > destination.getRow() && current.getColumn() > destination.getColumn()) {
@@ -220,8 +270,6 @@ public class MoveCommand implements IMoveCommand {
                 tryEatPos = new Position(destination.getRow() - 1, destination.getColumn() + 1);
             }
 
-
-
         boolean eatable = false;
 
         if (tryEatPos != null) {
@@ -229,12 +277,11 @@ public class MoveCommand implements IMoveCommand {
                     && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK
                     || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK_KING)) {
                 eatable = true;
-//                System.out.println("eatable for white:" + tryEatPos.getRow() + " : " + tryEatPos.getColumn());
+
             } else if (!boardState.getPlayer().isMyTurn()
                     && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE
                     || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE_KING)) {
                 eatable = true;
-//                System.out.println("eatable for black:" + tryEatPos.getRow() + " : " + tryEatPos.getColumn());
             }
 
             if (eatable && !searchingForcedAttacks) {
@@ -249,63 +296,120 @@ public class MoveCommand implements IMoveCommand {
 
         Position tryEatPos = null;
         boolean eatable = false;
-
-            for(int i = 1; i < checkSteps;i++){
-                if (current.getRow() > destination.getRow() && current.getColumn() > destination.getColumn()) {
-                    tryEatPos = new Position(destination.getRow() + i, destination.getColumn() + i);
-                } else if (current.getRow() > destination.getRow() && current.getColumn() < destination.getColumn()) {
-                    tryEatPos = new Position(destination.getRow() + i, destination.getColumn() - i);
-                } else if (current.getRow() < destination.getRow() && current.getColumn() < destination.getColumn()) {
-                    tryEatPos = new Position(destination.getRow() - i, destination.getColumn() - i);
-                } else if (current.getRow() < destination.getRow() && current.getColumn() > destination.getColumn()) {
-                    tryEatPos = new Position(destination.getRow() - i, destination.getColumn() + i);
+        for(int i = 1; i < checkSteps;i++){
+            if (current.getRow() > destination.getRow() && current.getColumn() > destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() + i, destination.getColumn() + i);
+            } else if (current.getRow() > destination.getRow() && current.getColumn() < destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() + i, destination.getColumn() - i);
+            } else if (current.getRow() < destination.getRow() && current.getColumn() < destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() - i, destination.getColumn() - i);
+            } else if (current.getRow() < destination.getRow() && current.getColumn() > destination.getColumn()) {
+                tryEatPos = new Position(destination.getRow() - i, destination.getColumn() + i);
+            }
+            if(checkOutOfBounds(tryEatPos)){
+                tryEatPos = null;
+            }
+            if (tryEatPos != null) {
+                if (boardState.getPlayer().isMyTurn()
+                        && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK
+                        || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK_KING)) {
+                    eatable = true;
+                } else if (!boardState.getPlayer().isMyTurn()
+                        && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE
+                        || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE_KING)) {
+                    eatable = true;
+                }else if(boardState.getPlayer().isMyTurn()
+                        && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE
+                        || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE_KING)){
+                    eatable = false;
+                }else if(!boardState.getPlayer().isMyTurn()
+                        && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK
+                        || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK_KING)){
+                    eatable = false;
+                }
+                if (eatable && !searchingForcedAttacks) {
+                    boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] = Piece.EMPTY;
                 }
 
-                if (tryEatPos != null) {
-                    if (boardState.getPlayer().isMyTurn()
-                            && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK
-                            || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.BLACK_KING)) {
-                        eatable = true;
-//                        System.out.println("eatable for white:" + tryEatPos.getRow() + " : " + tryEatPos.getColumn());
-                    } else if (!boardState.getPlayer().isMyTurn()
-                            && (boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE
-                            || boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.WHITE_KING)) {
-                        eatable = true;
-//                        System.out.println("eatable for blacks:" + tryEatPos.getRow() + " : " + tryEatPos.getColumn());
-                    }else if(boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] == Piece.EMPTY){
-                        eatable = true;
+            }
+
+        }
+
+        return eatable;
+    }
+
+    private void searchForcedAttackOnePiece(){
+        if(temp!=null){
+        ArrayList<ForceAttack> forcedAttackPieces = new ArrayList<>();
+        searchingForcedAttacks = true;
+
+        Piece piece = boardState.getBoard().getPieces()[temp.getRow()][temp.getColumn()];
+        int steps = 2;
+        if(!boardState.getPlayer().isMyTurn()){
+            if (piece == Piece.BLACK) {
+                if (calculatePossibilityForceAttack(new Position(temp.getRow(), temp.getColumn()), steps)) {
+                    forcedAttackPieces.add(new ForceAttack(new Position(temp.getRow(), temp.getColumn()), forceDestinationPosition));
+                }
+            }else if(piece == Piece.BLACK_KING){
+                for(int i = steps; i < boardState.getBoard().getSize(); i++){
+                    if (calculatePossibilityForceAttack(new Position(temp.getRow(), temp.getColumn()), i)) {
+                        forcedAttackPieces.add(new ForceAttack(new Position(temp.getRow(), temp.getColumn()), forceDestinationPosition));
                     }
-                    if (eatable && !searchingForcedAttacks) {
-                        boardState.getBoard().getPieces()[tryEatPos.getRow()][tryEatPos.getColumn()] = Piece.EMPTY;
+                }
+            }
+        }else if (boardState.getPlayer().isMyTurn()) {
+            if (piece == Piece.WHITE) {
+                if (calculatePossibilityForceAttack(new Position(temp.getRow(), temp.getColumn()), steps)) {
+                    forcedAttackPieces.add(new ForceAttack(new Position(temp.getRow(), temp.getColumn()), forceDestinationPosition));
+                }
+            }else if(piece == Piece.WHITE_KING){
+                for(int i = steps; i < boardState.getBoard().getSize(); i++){
+                    if (calculatePossibilityForceAttack(new Position(temp.getRow(), temp.getColumn()), i)) {
+                        forcedAttackPieces.add(new ForceAttack(new Position(temp.getRow(), temp.getColumn()), forceDestinationPosition));
                     }
                 }
             }
 
-        return eatable;
+        }
+        searchingForcedAttacks = false;
+        boardState.setForcedToAttackPieces(forcedAttackPieces);
+        }
     }
 
     private void searchForcedAttacks() {
         ArrayList<ForceAttack> forcedAttackPieces = new ArrayList<>();
         searchingForcedAttacks = true;
-        int steps = 2;
 
         for (int row = 0; row < boardState.getBoard().getSize(); row++) {
             for (int col = 0; col < boardState.getBoard().getSize(); col++) {
                 Piece piece = boardState.getBoard().getPieces()[row][col];
+                int steps = 2;
 
-                if (boardState.getPlayer().isMyTurn()) {
-                    if (piece == Piece.WHITE || piece == Piece.WHITE_KING) {
+                if(!boardState.getPlayer().isMyTurn()){
+                    if (piece == Piece.BLACK) {
                         if (calculatePossibilityForceAttack(new Position(row, col), steps)) {
                             forcedAttackPieces.add(new ForceAttack(new Position(row, col), forceDestinationPosition));
                         }
+                    }else if(piece == Piece.BLACK_KING){
+                        for(int i = steps; i < boardState.getBoard().getSize(); i++){
+                            if (calculatePossibilityForceAttack(new Position(row, col), i)) {
+                                forcedAttackPieces.add(new ForceAttack(new Position(row, col), forceDestinationPosition));
+                            }
+                        }
                     }
-
-                } else {
-                    if (piece == Piece.BLACK || piece == Piece.BLACK_KING) {
+                }else if (boardState.getPlayer().isMyTurn()) {
+                    if (piece == Piece.WHITE) {
                         if (calculatePossibilityForceAttack(new Position(row, col), steps)) {
                             forcedAttackPieces.add(new ForceAttack(new Position(row, col), forceDestinationPosition));
                         }
+                    }else if(piece == Piece.WHITE_KING){
+                        for(int i = steps; i < boardState.getBoard().getSize(); i++){
+                            if (calculatePossibilityForceAttack(new Position(row, col), i)) {
+                                forcedAttackPieces.add(new ForceAttack(new Position(row, col), forceDestinationPosition));
+                            }
+                        }
                     }
+
                 }
 
             }

@@ -2,7 +2,6 @@ package be.kdg.ai.checkers.algorithm;
 
 import be.kdg.ai.checkers.domain.BoardState;
 import be.kdg.ai.checkers.domain.Piece;
-import be.kdg.ai.checkers.domain.board.Board;
 import be.kdg.ai.checkers.domain.board.Position;
 
 import java.util.Enumeration;
@@ -12,8 +11,6 @@ import java.util.Enumeration;
  */
 public class MinimaxAlgorithm implements Algorithm {
     private static final double GOOD_VALUE = 10.0;
-    private static final double BAD_VALUE = -GOOD_VALUE;
-    private static final double STANDARD_VALUE = 0;
     private static final int NO_PIECES_LEFT = 0;
 
     @Override
@@ -102,13 +99,6 @@ public class MinimaxAlgorithm implements Algorithm {
             return node.getBoard().getWhiteLeft() - node.getBoard().getBlackLeft();
         else
             return node.getBoard().getBlackLeft() - node.getBoard().getWhiteLeft();
-//        if ((node.getForcedToAttackPieces() != null && node.getForcedToAttackPieces().size() != 0)) {
-//            if (node.getPlayer().isMyTurn()) {
-//                return BAD_VALUE + node.getBoard().getWhiteLeft() - node.getBoard().getBlackLeft();
-//            } else {
-//                return GOOD_VALUE + node.getBoard().getBlackLeft() - node.getBoard().getWhiteLeft();
-//            }
-//        }
-//        return STANDARD_VALUE;
+
     }
 }

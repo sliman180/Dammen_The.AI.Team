@@ -76,16 +76,6 @@ public class SwingGui extends JFrame implements Gui {
         // initializeJMenuBar();
     }
 
-    /*private void initializeJMenuBar() {
-        ActionListener newGameActionListener = e ->
-                notifyListeners();
-        ActionListener aboutActionListener = e ->
-                JOptionPane.showMessageDialog(this, "Made by Ali, Sliman & Sam\n?2015");
-
-           Menu menu =new Menu(this, newGameActionListener, aboutActionListener);
-           setJMenuBar(menu.getjMenuBar());
-    }  */
-
     private void loadImages() {
         // Load images of pieces
         whitePiece = null;
@@ -210,13 +200,6 @@ public class SwingGui extends JFrame implements Gui {
     public void showMessage(String gameWonMessage) {
         JOptionPane.showMessageDialog(this, gameWonMessage);
     }
-
-   /*   @Override
-      public void notifyListeners() {
-          for (GuiListener listener : listeners) {
-              listener.newGame();
-          }
-      }*/
 
     public void notifyListeners(Mouse mouseType, int row, int column) {
         for (GuiListener listener : listeners) {

@@ -70,7 +70,6 @@ public class GameManager implements Manager, ControllerListener, MoveListener {
 
     @Override
     public void endGame() {
-        String report = "Game ended:";
         if (boardState.getBoard().getBlackLeft() == 0)
             controller.gameWon("white");
         else

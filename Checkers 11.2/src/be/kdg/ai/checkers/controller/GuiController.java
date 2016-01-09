@@ -1,10 +1,5 @@
 package be.kdg.ai.checkers.controller;
 
-import be.kdg.ai.checkers.algorithm.Algorithm;
-import be.kdg.ai.checkers.algorithm.MinimaxAlgorithm;
-import be.kdg.ai.checkers.algorithm.MinimaxTreeFiller;
-import be.kdg.ai.checkers.algorithm.TreeFiller;
-import be.kdg.ai.checkers.command.MoveCommand;
 import be.kdg.ai.checkers.domain.BoardState;
 import be.kdg.ai.checkers.domain.Piece;
 import be.kdg.ai.checkers.domain.board.Position;
@@ -44,22 +39,14 @@ public class GuiController implements Controller {
         listeners.add(listenerToAdd);
     }
 
-    public Gui getGui() {
-        return gui;
-    }
-
     public void setGui(Gui gui) {
         this.gui = gui;
     }
 
     @Override
     public void gameWon(String player) {
-        String gameWonMessage;
-        if (player.equalsIgnoreCase("white"))
-            gameWonMessage = "White player won the game!";
-        else
-            gameWonMessage = "Black player won the game!";
-        gui.showMessage(gameWonMessage);
+
+        gui.showMessage(player + " won the game");
     }
 
 
@@ -94,7 +81,6 @@ public class GuiController implements Controller {
 
     @Override
     public void hover(int row, int column) {
-
         //System.out.println("r: "+row+"c: "+column);
     }
 
